@@ -3,12 +3,12 @@ const vaultKey = 'feedback-form-state';
 const userData = {};
 
 function fillContactFormElements() {
-  const userDataFromLS = JSON.parse(localStorage.getItem(vaultKey));
-
-  for (let prop in userDataFromLS) {
-    if (userDataFromLS.hasOwnProperty(prop)) {
-      formEl.elements[prop].value = userDataFromLS[prop];
-    }
+  const savedData = localStorage.getItem(vaultKey);
+  if (savedData) {
+    const userDataFromLS = JSON.parse(savedData);
+    Object.entries(userDataFromLS).forEach(([name, value]) => {
+      formEl.elements[name].value = value;
+    });
   }
 }
 
@@ -17,19 +17,25 @@ if (localStorage.length !== 0) {
 }
 
 function onInputChange(event) {
+  let savedData = localStorage.getItem(vaultKey);
+  savedData = savedData ? JSON.parse(savedData) : {};
   const name = event.target.name;
   const value = event.target.value;
 
-  userData[name] = value;
+  savedData[name] = value;
 
-  localStorage.setItem(vaultKey, JSON.stringify(userData));
+  localStorage.setItem(vaultKey, JSON.stringify(savedData));
 }
 
 function onFormSubmit(event) {
   event.preventDefault();
-  event.target.reset();
+  const submitedData = new FormData(formEl);
+  submitedData.forEach((value, name) => {
+    userData[name] = value;
+  });
   console.log(userData);
   localStorage.removeItem(vaultKey);
+  event.target.reset();
 }
 
 formEl.addEventListener('input', _.throttle(onInputChange, 500));
